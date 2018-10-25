@@ -168,3 +168,23 @@ function getTask($taskId)
 
     return $result->fetch();
 }
+
+function deleteTask($taskId)
+{
+    include "connection.php";
+
+    try {
+        $query = "DELETE FROM tasks WHERE task_id = ?";
+
+        $result = $db->prepare($query);
+
+        $result->bindValue(1, $taskId, PDO::PARAM_INT);
+        $result->execute();
+
+    } catch (Exception $e) {
+        echo "Error: ".$e->getMessage()."<br/>";
+        return [];
+    }
+
+    return true;
+}
