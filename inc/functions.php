@@ -93,12 +93,16 @@ function getTaskList($filter = null)
     return $results->fetchAll(PDO::FETCH_ASSOC);
 }
 
-function addTask($projectId, $title, $date, $time)
+function addTask($projectId, $title, $date, $time, $taskId = null)
 {
     include "connection.php";
 
-    $query = "INSERT INTO tasks(project_id, title, date, time)"
-        ." VALUES(?, ?, ?, ?)";
+    if (!empty($taskId)) {
+        $query = "UPDATE tasks SET project_id = ?, title = ?, date = ?, time = ? WHERE task_id = ?";
+    } else {
+        $query = "INSERT INTO tasks(project_id, title, date, time)"
+            ." VALUES(?, ?, ?, ?)";
+    }
 
     try {
 
@@ -108,6 +112,10 @@ function addTask($projectId, $title, $date, $time)
         $results->bindValue(2, $title, PDO::PARAM_STR);
         $results->bindValue(3, $date, PDO::PARAM_STR);
         $results->bindValue(4, $time, PDO::PARAM_INT);
+
+        if (!empty($taskId)) {
+            $results->bindValue(5, $taskId, PDO::PARAM_INT);
+        }
 
         $results->execute();
 
@@ -130,6 +138,27 @@ function getProject($projectId)
         $result = $db->prepare($query.$where);
 
         $result->bindValue(1, $projectId, PDO::PARAM_INT);
+        $result->execute();
+
+    } catch (Exception $e) {
+        echo "Error: ".$e->getMessage()."<br/>";
+        return [];
+    }
+
+    return $result->fetch();
+}
+
+function getTask($taskId)
+{
+    include "connection.php";
+
+    try {
+        $query = 'SELECT task_id, title, date, time, project_id FROM tasks';
+        $where = " WHERE task_id = ?";
+
+        $result = $db->prepare($query.$where);
+
+        $result->bindValue(1, $taskId, PDO::PARAM_INT);
         $result->execute();
 
     } catch (Exception $e) {

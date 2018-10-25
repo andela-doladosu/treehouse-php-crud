@@ -4,17 +4,26 @@ require 'inc/functions.php';
 $pageTitle = "Task | Time Tracker";
 $page = "tasks";
 
-$project_id = $title = $date = $time = '';
+$projectId = $title = $date = $time = '';
+
+$title = $category = '';
+
+if (isset($_GET['id'])) {
+    list($taskId, $title, $date, $time, $projectId) = getTask(
+        filter_input(INPUT_GET, 'id', FILTER_SANITIZE_NUMBER_INT)
+    );
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $project_id = trim(filter_input(INPUT_POST, 'project_id', FILTER_SANITIZE_NUMBER_INT));
+    $taskId = filter_input(INPUT_POST, 'id', FILTER_SANITIZE_NUMBER_INT);
+    $projectId = trim(filter_input(INPUT_POST, 'project_id', FILTER_SANITIZE_NUMBER_INT));
     $title = trim(filter_input(INPUT_POST, 'title', FILTER_SANITIZE_STRING));
     $date = trim(filter_input(INPUT_POST, 'date', FILTER_SANITIZE_STRING));
     $time = trim(filter_input(INPUT_POST, 'time', FILTER_SANITIZE_NUMBER_INT));
 
     $dateMatch = explode('/', $date);
 
-    if (empty($project_id) || empty($title) || empty($date) || empty($time)) {
+    if (empty($projectId) || empty($title) || empty($date) || empty($time)) {
         $error_message = "Please fill in the required fields: Project, Title, Date, Time";
     } elseif (count($dateMatch) !== 3
         || strlen($dateMatch['0']) !== 2
@@ -24,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     ) {
         $error_message = "Invalid Date";
     } else {
-        if (addTask($project_id, $title, $date, $time)) {
+        if (addTask($projectId, $title, $date, $time, $taskId)) {
             header("Location:task_list.php");
             exit;
         }
@@ -37,7 +46,13 @@ include 'inc/header.php';
 <div class="section page">
     <div class="col-container page-container">
         <div class="col col-70-md col-60-lg col-center">
-            <h1 class="actions-header">Add Task</h1>
+            <h1 class="actions-header"><?php
+            if (!empty($taskId)) {
+                echo "Update ";
+            } else {
+                echo "Add ";
+            }
+            ?>Task</h1>
             <?php
             if (isset($error_message)) {
                 echo "<p class='message'>$error_message</p>";
@@ -56,7 +71,7 @@ include 'inc/header.php';
                                     foreach (getProjectList() as $project) {
                                         echo "<option value='".$project['project_id']."'";
 
-                                        if ($project_id === $project['project_id']) {
+                                        if ($projectId === $project['project_id']) {
                                             echo " selected";
                                         }
 
@@ -79,6 +94,11 @@ include 'inc/header.php';
                         <td><input type="text" id="time" name="time" value="<?php echo htmlspecialchars($time)?>" /> minutes</td>
                     </tr>
                 </table>
+                <?php
+                if (!empty($taskId)) {
+                    echo "<input type='hidden' name='id' value='".$taskId."'/>";
+                }
+                ?>
                 <input class="button button--primary button--topic-php" type="submit" value="Submit" />
             </form>
         </div>
