@@ -14,17 +14,63 @@ include 'inc/header.php';
 <div class="col-container page-container">
     <div class="col col-70-md col-60-lg col-center">
         <div class="col-container">
-            <h1 class='actions-header'>Reports</h1>
+            <h1 class='actions-header'>Report on <?php
+            if (!is_array($filter)) {
+                echo "All tasks by Project";
+            } else {
+                echo ucwords($filter[0]) . ": ";
+                switch ($filter[0]) {
+                    case 'project':
+                        $project = getProject($filter[1]);
+                        echo $project['title'];
+                        break;
+                    case 'category':
+                        echo $filter[1];
+                        break;
+                    case 'date':
+                        echo "$filter[1] - $filter[2]";
+                        break;
+                }
+            }?></h1>
             <form action="reports.php" method="get" class="form-container form-report">
                 <label for="filter">Filter:</label>
                 <select id="filter" name="filter">
                     <option value="">Select One</option>
+                    <optgroup label="Project">
                     <?php
                     foreach (getProjectList() as $project) {
                         echo "<option value='project: " . $project['project_id'] . "'>";
                         echo $project['title'] . "</option>\n";
                     }
                     ?>
+                    </optgroup>
+                    <optgroup label="Category">
+                        <option value="category:Billable">Billable</option>
+                        <option value="category:Charity">Charity</option>
+                        <option value="category:Personal">Personal</option>
+                    </optgroup>
+                    <optgroup label="Date">
+                        <option value="date:<?php
+                        echo date('m/d/Y', strtotime('-2, Sunday'));
+                        echo ":";
+                        echo date('m/d/Y', strtotime('-1, Saturday'));
+                        ?>">Last Week</option>
+                        <option value="date:<?php
+                        echo date('m/d/Y', strtotime('-1, Sunday'));
+                        echo ":";
+                        echo date('m/d/Y');
+                        ?>">This Week</option>
+                        <option value="date:<?php
+                        echo date('m/d/Y', strtotime('first day of last month'));
+                        echo ":";
+                        echo date('m/d/Y', strtotime('last day of last month'));
+                        ?>">Last Month</option>
+                        <option value="date:<?php
+                        echo date('m/d/Y', strtotime('first day of this month'));
+                        echo ":";
+                        echo date('m/d/Y', strtotime('this month'));
+                        ?>">This Month</option>
+                    </optgroup>
                 </select>
                 <input class="button" type="submit" name="" value="Run">
             </form>

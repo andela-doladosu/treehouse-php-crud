@@ -45,8 +45,16 @@ function getTaskList($filter = null)
     $where = '';
 
     if (is_array($filter)) {
-        if ($filter[0] === 'project') {
-            $where = " WHERE projects.project_id = ?";
+        switch ($filter[0]) {
+            case 'project':
+                $where = " WHERE projects.project_id = ?";
+                break;
+            case 'category':
+                $where = " WHERE category = ?";
+                break;
+            case 'date':
+                $where = " WHERE date >= ? AND date <= ?";
+                break;
         }
     }
 
@@ -60,7 +68,11 @@ function getTaskList($filter = null)
         $results = $db->prepare($query . $where . $orderBy);
 
         if (is_array($filter)) {
-            $results->bindValue(1, $filter[1], PDO::PARAM_INT);
+            $results->bindValue(1, $filter[1]);
+
+            if ($filter[0] === 'date') {
+                $results->bindValue(2, $filter[2], PDO::PARAM_STR);
+            }
         }
 
         $results->execute();
@@ -97,4 +109,25 @@ function addTask($project_id, $title, $date, $time)
     }
 
     return true;
+}
+
+function getProject($project_id)
+{
+    include "connection.php";
+
+    try {
+        $query = 'SELECT project_id, title, category FROM projects';
+        $where = " WHERE project_id = ?";
+
+        $result = $db->prepare($query.$where);
+
+        $result->bindValue(1, $project_id, PDO::PARAM_INT);
+        $result->execute();
+
+    } catch (Exception $e) {
+        echo "Error: ".$e->getMessage()."<br/>";
+        return [];
+    }
+
+    return $result->fetch();
 }
