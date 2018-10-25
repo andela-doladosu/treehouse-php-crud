@@ -12,11 +12,15 @@ function getProjectList()
     }
 }
 
-function addProject($title, $category)
+function addProject($title, $category, $projectId = null)
 {
     include "connection.php";
 
-    $query = "INSERT INTO projects(title, category) VALUES(?, ?)";
+    if (!empty($projectId)) {
+        $query = "UPDATE projects SET title = ?, category = ? WHERE project_id = ?";
+    } else {
+        $query = "INSERT INTO projects(title, category) VALUES(?, ?)";
+    }
 
     try {
 
@@ -24,6 +28,10 @@ function addProject($title, $category)
 
         $results->bindValue(1, $title, PDO::PARAM_STR);
         $results->bindValue(2, $category, PDO::PARAM_STR);
+
+        if ($projectId) {
+            $results->bindValue(3, $projectId, PDO::PARAM_INT);
+        }
 
         $results->execute();
 
@@ -85,7 +93,7 @@ function getTaskList($filter = null)
     return $results->fetchAll(PDO::FETCH_ASSOC);
 }
 
-function addTask($project_id, $title, $date, $time)
+function addTask($projectId, $title, $date, $time)
 {
     include "connection.php";
 
@@ -96,7 +104,7 @@ function addTask($project_id, $title, $date, $time)
 
         $results = $db->prepare($query);
 
-        $results->bindValue(1, $project_id, PDO::PARAM_INT);
+        $results->bindValue(1, $projectId, PDO::PARAM_INT);
         $results->bindValue(2, $title, PDO::PARAM_STR);
         $results->bindValue(3, $date, PDO::PARAM_STR);
         $results->bindValue(4, $time, PDO::PARAM_INT);
@@ -111,7 +119,7 @@ function addTask($project_id, $title, $date, $time)
     return true;
 }
 
-function getProject($project_id)
+function getProject($projectId)
 {
     include "connection.php";
 
@@ -121,7 +129,7 @@ function getProject($project_id)
 
         $result = $db->prepare($query.$where);
 
-        $result->bindValue(1, $project_id, PDO::PARAM_INT);
+        $result->bindValue(1, $projectId, PDO::PARAM_INT);
         $result->execute();
 
     } catch (Exception $e) {
