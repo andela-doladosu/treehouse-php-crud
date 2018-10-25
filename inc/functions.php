@@ -188,3 +188,28 @@ function deleteTask($taskId)
 
     return true;
 }
+
+function deleteProject($projectId)
+{
+    include "connection.php";
+
+    try {
+        $query = "DELETE FROM projects WHERE project_id = ?";
+        $query .= " AND project_id NOT IN (SELECT project_id FROM tasks)";
+
+        $result = $db->prepare($query);
+
+        $result->bindValue(1, $projectId, PDO::PARAM_INT);
+        $result->execute();
+
+    } catch (Exception $e) {
+        echo "Error: ".$e->getMessage()."<br/>";
+        return [];
+    }
+
+    if ($result->rowCount() > 0) {
+        return true;
+    } else {
+        return false;
+    }
+}
